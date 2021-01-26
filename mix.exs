@@ -5,13 +5,10 @@ defmodule TurnX.MixProject do
     [
       app: :turn_x,
       version: "0.1.0",
-      build_path: "../../_build",
-      config_path: "../../config/config.exs",
-      deps_path: "../../deps",
-      lockfile: "../../mix.lock",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      compilers: [:rust2ex] ++ Mix.compilers()
     ]
   end
 
@@ -26,7 +23,9 @@ defmodule TurnX.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_libsrtp, "~> 0.1.0"}
+      {:ex_libsrtp, "~> 0.1.0"},
+      {:rust2ex, git: "git@github.com:Vor-Tech/Rust2Ex.git", tag: "v0.1.2"},
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
       # {:sibling_app_in_umbrella, in_umbrella: true}
