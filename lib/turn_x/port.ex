@@ -1,6 +1,15 @@
 defmodule TurnX.ServerPort do
   use GenServer
   # ===========================================================================
+  # Types
+  # ===========================================================================
+  defmodule Frame do
+    @enforce_keys [:command, :ident, :frame]
+    defstruct command: 0x80, ident: nil, frame: [[]]
+    @type t :: %__MODULE__{command: byte, ident: non_neg_integer, frame: [list]}
+  end
+
+  # ===========================================================================
   # Client callbacks
   # ===========================================================================
   @spec start_link(maybe_improper_list) :: :ignore | {:error, any} | {:ok, pid}
@@ -43,8 +52,8 @@ defmodule TurnX.ServerPort do
 
   @impl true
   def handle_info({port, {:data, binary}}, state) when port == state.port do
-    {:ok, term} = :erlang.binary_to_term(binary)
-    IO.puts(term)
+    {:ok, term} = :erlang.binary_to_term(binary, [:safe])
+    IO.inspect(term)
     {:noreply, state}
   end
 end
