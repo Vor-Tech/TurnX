@@ -5,13 +5,19 @@ extern crate cc;
 
 fn main() {
     let include = format!(
+        "-I{}",
+        pkg_config::get_variable("openh264", "includedir").unwrap()
+    );
+    let lib = format!(
         "-L{}",
-        pkg_config::get_variable("vpx", "includedir").unwrap()
+        pkg_config::get_variable("openh264", "libdir").unwrap()
     );
     cc::Build::new()
-        .file("src/c/turnx_vpx.c")
+        .cpp(true)
         .include(include)
-        .flag("-lvpx")
+        .file("src/cxx/turnx_h264_cxxcalls.cpp")
+        .flag(&lib)
+        .flag("-lopenh264")
         .shared_flag(true)
-        .compile("libturnx_vpx.so");
+        .compile("turnx_h264_cxxcalls.so");
 }

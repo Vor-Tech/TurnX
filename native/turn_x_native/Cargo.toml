@@ -10,7 +10,6 @@ edition = "2018"
 erlang_port = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_eetf = "0.2"
-libvpx-native-sys = "5.0"
 
 [build-dependencies]
 cc = "1.0"

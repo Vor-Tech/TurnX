@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "type_traits": "cpp",
+        "list": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp"
+    }
+}
