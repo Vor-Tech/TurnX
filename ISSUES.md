@@ -5,6 +5,7 @@
 ## Elixir
 - SRTP needs to actually be implemented.
 - Supervision trees need to restart the Rust/C++ port if and when it fails.
+- Test Driven Development cases for SRTP + H264.
 
 ## Rust
 - Implement Erlang Port for Elixir interface
