@@ -4,13 +4,12 @@
 
 ## Elixir
 - SRTP needs to actually be implemented.
-- Work on this more.
 - Supervision trees need to restart the Rust/C++ port if and when it fails.
 
 ## Rust
-- Get to work on this more.
+- Implement Erlang Port for Elixir interface
 
 ## C++
-- Make `turnx_h264_cxxcalls_smoketest`'s static assertion failure messages more verbose.
-- Complete the OpenH264 compander actually.
+- (DONE) Make `turnx_h264_cxxcalls_smoketest`'s static assertion failure messages more verbose.
+- (Almost done but **needs testing**) Complete the OpenH264 [adaptive bitrate streamer](https://en.wikipedia.org/wiki/Adaptive_bitrate_streaming) actually.
 - Seems like more documentation is needed.

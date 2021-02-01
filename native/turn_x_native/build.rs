@@ -1,5 +1,5 @@
-// Escape to C for some code initialization. Rationales will be listed in the
-// C files.
+// Escape to C/C++ for some code initialization. Rationales will be listed in
+// the C/C++ files.
 use pkg_config;
 extern crate cc;
 
