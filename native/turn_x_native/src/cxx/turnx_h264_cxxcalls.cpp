@@ -9,7 +9,7 @@
 #include <wels/codec_api.h>
 
 // Default bitrate in bits per second
-constexpr uint32_t default_bitrate = 500'000;
+constexpr uint32_t default_bitrate = 1'000'000;
 
 // Throw a runtime error with the specified message if the condition is false
 void turnx_assert(bool condition, const char *message) {
@@ -20,16 +20,14 @@ void turnx_assert(bool condition, const char *message) {
 
 // Can be either YUV or H264
 extern "C" struct turnx_h264_cxxcalls_frame {
-  union p_t {
-    // In the case of YUV data:
-    uint8_t *data[3];
-    
-    // In the case of H264 data:
-    uint8_t *buf;
-  };
-  p_t p;
   bool is_encoded;
   int32_t n_items;
+
+  // === ITEMS
+  // In the case of YUV data:
+  uint8_t *data[3];
+  // In the case of H264 data:
+  uint8_t *buf;
 };
 
 extern "C" struct turnx_h264_cxxcalls_status { uint32_t bitrate; };
@@ -130,16 +128,23 @@ extern "C" turnx_h264_cxxcalls_frame *turnx_h264_cxxcalls_pop() {
   SBufferInfo destination_buffer_info;
   memset(&destination_buffer_info, 0, sizeof(SBufferInfo));
 
-  auto dec_frame = turnx_h264_cxxcalls_frame{.is_encoded = false, .n_items = 0};
+  auto dec_frame =
+      turnx_h264_cxxcalls_frame{.is_encoded = false,
+                                .n_items = 0,
+                                .data = {nullptr},
+                                .buf = nullptr};
 
   turnx_assert(codec->decoder->DecodeFrameNoDelay(
-                   src_frame->p.buf, src_frame->n_items, dec_frame.p.data,
+                   src_frame->buf, src_frame->n_items, dec_frame.data,
                    &destination_buffer_info) == 0,
                "can't decode this frame");
 
   // === ENCODER ===
   auto enc_frame =
-      new turnx_h264_cxxcalls_frame{.is_encoded = true, .n_items = 0};
+      new turnx_h264_cxxcalls_frame{.is_encoded = true,
+                                    .n_items = 0,
+                                    .data = {nullptr},
+                                    .buf = nullptr};
 
   auto source = SSourcePicture{};
   memset(&source, 0, sizeof(SSourcePicture));
@@ -159,9 +164,9 @@ extern "C" turnx_h264_cxxcalls_frame *turnx_h264_cxxcalls_pop() {
   memcpy(source.pData[2], dec_frame.p.data[2],
          source.iStride[2] * (codec->h >> 1));
 #endif
-  source.pData[0] = dec_frame.p.data[0];
-  source.pData[1] = dec_frame.p.data[1];
-  source.pData[2] = dec_frame.p.data[2];
+  source.pData[0] = dec_frame.data[0];
+  source.pData[1] = dec_frame.data[1];
+  source.pData[2] = dec_frame.data[2];
 
   auto source_info = SFrameBSInfo{};
   memset(&source_info, 0, sizeof(SFrameBSInfo));
@@ -170,7 +175,7 @@ extern "C" turnx_h264_cxxcalls_frame *turnx_h264_cxxcalls_pop() {
                    cmResultSuccess,
                "can't encode that frame");
   enc_frame->n_items = source_info.iFrameSizeInBytes;
-  memcpy(enc_frame->p.buf, source_info.sLayerInfo->pBsBuf, enc_frame->n_items);
+  memcpy(enc_frame->buf, source_info.sLayerInfo->pBsBuf, enc_frame->n_items);
   return enc_frame;
 }
 extern "C" size_t turnx_h264_cxxcalls_size() {
