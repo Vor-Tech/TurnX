@@ -30,8 +30,6 @@ extern "C" struct turnx_h264_cxxcalls_frame {
   uint8_t *buf;
 };
 
-extern "C" struct turnx_h264_cxxcalls_status { uint32_t bitrate; };
-
 struct turnx_h264_cxxcalls_codec {
   ISVCEncoder *encoder = nullptr;
   ISVCDecoder *decoder = nullptr;
@@ -96,8 +94,8 @@ struct turnx_h264_cxxcalls_smoketest {
   // These structures shall be C-compatible.
   static_assert(std::is_pod<turnx_h264_cxxcalls_frame>::value == true,
                 "this struct must be C-compatible to interface with Rust");
-  static_assert(std::is_pod<turnx_h264_cxxcalls_status>::value == true,
-                "this struct must be C-compatible to interface with Rust");
+  //static_assert(std::is_pod<turnx_h264_cxxcalls_opts>::value == true,
+  //              "this struct must be C-compatible to interface with Rust");
 };
 
 extern "C" void turnx_h264_cxxcalls_start(uint16_t w, uint16_t h) {
@@ -128,11 +126,8 @@ extern "C" turnx_h264_cxxcalls_frame *turnx_h264_cxxcalls_pop() {
   SBufferInfo destination_buffer_info;
   memset(&destination_buffer_info, 0, sizeof(SBufferInfo));
 
-  auto dec_frame =
-      turnx_h264_cxxcalls_frame{.is_encoded = false,
-                                .n_items = 0,
-                                .data = {nullptr},
-                                .buf = nullptr};
+  auto dec_frame = turnx_h264_cxxcalls_frame{
+      .is_encoded = false, .n_items = 0, .data = {nullptr}, .buf = nullptr};
 
   turnx_assert(codec->decoder->DecodeFrameNoDelay(
                    src_frame->buf, src_frame->n_items, dec_frame.data,
@@ -140,11 +135,8 @@ extern "C" turnx_h264_cxxcalls_frame *turnx_h264_cxxcalls_pop() {
                "can't decode this frame");
 
   // === ENCODER ===
-  auto enc_frame =
-      new turnx_h264_cxxcalls_frame{.is_encoded = true,
-                                    .n_items = 0,
-                                    .data = {nullptr},
-                                    .buf = nullptr};
+  auto enc_frame = new turnx_h264_cxxcalls_frame{
+      .is_encoded = true, .n_items = 0, .data = {nullptr}, .buf = nullptr};
 
   auto source = SSourcePicture{};
   memset(&source, 0, sizeof(SSourcePicture));
@@ -180,4 +172,16 @@ extern "C" turnx_h264_cxxcalls_frame *turnx_h264_cxxcalls_pop() {
 }
 extern "C" size_t turnx_h264_cxxcalls_size() {
   return codec->frame_queue.size();
+}
+extern "C" void turnx_h264_cxxcalls_get_bitrate(int *bitrate) {
+  turnx_assert(codec != nullptr,
+               "codec does not exist, can't get bitrate here");
+  turnx_assert(codec->encoder->GetOption(ENCODER_OPTION_BITRATE, bitrate) == 0,
+               "can't get bitrate option");
+}
+extern "C" void turnx_h264_cxxcalls_set_bitrate(int *bitrate) {
+  turnx_assert(codec != nullptr,
+               "codec does not exist, can't set bitrate here");
+  turnx_assert(codec->encoder->SetOption(ENCODER_OPTION_BITRATE, bitrate) == 0,
+               "can't set bitrate option");
 }
