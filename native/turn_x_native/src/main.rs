@@ -1,5 +1,10 @@
 mod turnx_gst;
-use gstreamer::prelude::*;
+
+extern crate gstreamer as gst;
+use gst::prelude::*;
+extern crate gstreamer_pbutils as gst_pbutils;
+use gst_pbutils::prelude::*;
+
 use serde::{Deserialize, Serialize};
 
 const CREATE_USER: u8 = 0x11_u8;
@@ -25,7 +30,7 @@ fn main() {
     };
 
     assert_eq!(
-        gstreamer::init().is_ok(),
+        gst::init().is_ok(),
         true,
         "Can't init Gstreamer, are its dependencies installed?"
     );

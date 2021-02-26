@@ -10,4 +10,5 @@ edition = "2018"
 erlang_port = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_eetf = "0.2"
-gstreamer = "0.16.7"
+gstreamer = "0.16"
+gstreamer-pbutils = "0.16"
