@@ -1,6 +1,5 @@
 # TurnX
-
-**TODO: Add description**
+TURN with ABR in Elixir and Rust
 
 ## Installation
 

@@ -1,0 +1,27 @@
+{
+    "name": "TurnX",
+    "files": [
+        {
+            "git": true
+        }
+    ],
+    "build": {
+        "default_target": "build",
+        "clean_target": "clean",
+        "targets": [
+            {
+                "name": "build",
+                "build_cmd": "/usr/bin/mix compile"
+            },
+            {
+                "name": "clean",
+                "build_cmd": "/usr/bin/mix clean"
+            }
+        ]
+    },
+    "ctags": {
+        "options": [
+            "--langmap=elixir:.ex,.exs",
+        ]
+    }
+}

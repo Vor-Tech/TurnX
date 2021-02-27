@@ -12,3 +12,4 @@ serde = { version = "1.0", features = ["derive"] }
 serde_eetf = "0.2"
 gstreamer = "0.16"
 gstreamer-pbutils = "0.16"
+tokio = { version = "1.2", features = ["rt", "sync"] }
