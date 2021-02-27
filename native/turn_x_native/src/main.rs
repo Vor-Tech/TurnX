@@ -29,9 +29,8 @@ fn main() {
         erlang_port::nouse_stdio(PacketSize::Four)
     };
 
-    assert_eq!(
+    assert!(
         gst::init().is_ok(),
-        true,
         "Can't init Gstreamer, are its dependencies installed?"
     );
 

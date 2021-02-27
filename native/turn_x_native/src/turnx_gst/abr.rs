@@ -7,17 +7,17 @@ use gst_pbutils::prelude::*;
 // ABR Pipeline object
 struct Pipeline {
     // > Lag Sense PID Object
-    // > Audio Source
-    // > Video Source
-    
-    // > Audio Decoder
-    // > Video Decoder
-    
-    // > Audio Resampler/Encoder
-    // > Video Resampler/Encoder
-    
-    // > Audio Sink
-    // > Video Sink
+// > Audio Source
+// > Video Source
+
+// > Audio Decoder
+// > Video Decoder
+
+// > Audio Resampler/Encoder
+// > Video Resampler/Encoder
+
+// > Audio Sink
+// > Video Sink
 }
 // Generate an ABR pipeline
 

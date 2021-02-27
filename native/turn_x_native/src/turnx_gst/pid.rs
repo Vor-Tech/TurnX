@@ -1,21 +1,21 @@
-// PID: Proportional-Integral-Derivative control (needs testing TODO)
+// PID: Proportional-Integral-Derivative control
 use std::collections::VecDeque;
 
 // PID controller object. `T` should be a numeric type.
-struct PIDController<T> {
+pub struct PIDController<T> {
     // > The P term is the error of `current` to the passed argument with a
     // > ... gain term
     proportion: T,
     // > The I term adds previous delta `current` values
     integral: VecDeque<T>,
     // > The I term should have a fixed but adjustable size
-    integral_size: usize,
+    pub integral_size: usize,
     // > The D term is the current rate of change in `current`
     derivative: T,
     // > The previous D term is needed to calculate a derivative
     derivative_previous: T,
 
-    current: T,
+    pub current: T,
 
     // > Weights for the PID controller
     weight_proportion: T,
@@ -29,7 +29,7 @@ struct PIDController<T> {
 }
 
 impl PIDController<f32> {
-    fn new(
+    pub fn new(
         min: f32,
         max: f32,
         weight_proportion: f32,
@@ -55,7 +55,7 @@ impl PIDController<f32> {
         }
     }
 
-    fn adjust(&mut self, value: f32) -> f32 {
+    pub fn adjust(&mut self, value: f32) -> f32 {
         // adjust proportion here
         self.proportion = value - self.current;
 
@@ -74,27 +74,42 @@ impl PIDController<f32> {
         // adjust derivative here
         let derivative_hold = self.derivative_previous;
         self.derivative_previous = self.derivative;
-        self.derivative = self.proportion - derivative_hold;
+        self.derivative = (self.proportion - derivative_hold);
 
         // calc result
         let result: f32 = (self.proportion * self.weight_proportion)
-            + (self.integral.clone().into_iter().sum::<f32>() / (self.integral.len() as f32))
+            + ((self.integral.clone().into_iter().sum::<f32>() / (self.integral.len() as f32))
+                * self.weight_integral)
             + (self.derivative * self.weight_derivative);
-        assert_eq!(
-            result.is_nan(),
-            false,
+        assert!(
+            !result.is_nan(),
             "PID control resulted in abnormal NaN delta"
         );
 
         // set current then clamp
         self.current = self.current + result;
-        assert_eq!(
-            self.current.is_nan(),
-            false,
+        assert!(
+            !self.current.is_nan(),
             "PID control resulted in abnormal NaN current value"
         );
         self.current = self.current.clamp(self.min, self.max);
-        
+
         self.current
+    }
+}
+
+// ============================================================================
+// TEST
+// ============================================================================
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check() {
+        let mut pid = PIDController::<f32>::new(500.0, 2500.0, 0.02, 0.15, 0.01, 4, 500.0, 0.0, 0.0);
+        for i in 0..16 {
+            println!("i {} pid val returns {}", i, pid.adjust(1000.0));
+        }
     }
 }
