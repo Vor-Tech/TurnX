@@ -1,14 +1,13 @@
 mod turnx_gst;
 
 extern crate gstreamer as gst;
-use gst::prelude::*;
-extern crate gstreamer_pbutils as gst_pbutils;
-use gst_pbutils::prelude::*;
 
-use tokio::sync;
+use std::{
+    sync::{Arc, RwLock},
+    thread,
+};
 use tokio::task;
-use tokio::time::{sleep, timeout, Duration};
-use eetf::{Term, Atom};
+use tokio::time::{timeout, Duration};
 
 type AVFrame = crate::turnx_gst::frame::AVFrame;
 type AVFrameOpt = Option<AVFrame>;
@@ -27,37 +26,44 @@ const PONG: u8 = 0x81_u8;
 async fn main() {
     use erlang_port::{PortReceive, PortSend};
 
-    let mut port = unsafe {
-        use erlang_port::PacketSize;
-        erlang_port::nouse_stdio(PacketSize::Four)
-    };
-
     assert!(
         gst::init().is_ok(),
-        "Can't init Gstreamer, are its dependencies installed?"
+        "Can't init GStreamer, are its dependencies installed?"
     );
 
     // ========================================================================
     //  RUNLOOP
     // ========================================================================
+    let port = Arc::new(RwLock::new(unsafe {
+        use erlang_port::PacketSize;
+        erlang_port::nouse_stdio(PacketSize::Four)
+    }));
     loop {
-        let join = timeout(
-            Duration::from_secs(5),
-            task::spawn_blocking(move || {
-                let mut item: Option<AVFrame> = None;
-                while item.is_none() {
-                    sleep(Duration::from_millis(1));
-                    item = port.receiver.receive::<AVFrame>()
-                };
-                item.unwrap()
-            })
-        ).await;
-        assert!(join.is_ok(), "AV task in runloop has crashed, aborting");
-        
-        let result = join.unwrap();
-        
-        // The runloop SHOULD HAVE crashed if it was an error... 
-        port.sender
-            .reply::<Result<AVFrameOpt, AVFrameOpt>, AVFrameOpt, AVFrameOpt>(Ok(result.ok()));
+        let ref_port = Arc::clone(&port);
+        assert!(
+            timeout(
+                Duration::from_secs(3),
+                task::spawn_blocking(move || {
+                    if let Ok(mut port_w) = ref_port.write() {
+                        let mut item: Option<AVFrame> = None;
+                        while item.is_none() {
+                            // This isn't async but it'll block.
+                            thread::sleep(Duration::from_millis(1));
+                            item = port_w.receiver.receive::<AVFrame>()
+                        }
+                        // Unwrapping is safe here.
+                        port_w
+                            .sender
+                            .reply::<Result<AVFrame, AVFrame>, AVFrame, AVFrame>(Ok(item.unwrap()));
+                    } else {
+                        panic!("Can't lock port for write")
+                    }
+                })
+            )
+            .await
+            .is_ok(),
+            "Runloop crashed"
+        );
     }
+    // The runloop SHOULD HAVE crashed if it was an error...
 }

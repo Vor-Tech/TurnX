@@ -83,14 +83,14 @@ impl PIDController<f32> {
             + (self.derivative * self.weight_derivative);
         assert!(
             !result.is_nan(),
-            "PID control resulted in abnormal NaN delta"
+            "PID control resulted in abnormal NaN_f32 delta"
         );
 
         // set current then clamp
         self.current = self.current + result;
         assert!(
             !self.current.is_nan(),
-            "PID control resulted in abnormal NaN current value"
+            "PID control resulted in abnormal NaN_f32 current value"
         );
         self.current = self.current.clamp(self.min, self.max);
 
@@ -153,14 +153,14 @@ impl PIDController<f64> {
             + (self.derivative * self.weight_derivative);
         assert!(
             !result.is_nan(),
-            "PID control resulted in abnormal NaN delta"
+            "PID control resulted in abnormal NaN_f64 delta"
         );
 
         // set current then clamp
         self.current = self.current + result;
         assert!(
             !self.current.is_nan(),
-            "PID control resulted in abnormal NaN current value"
+            "PID control resulted in abnormal NaN_f64 current value"
         );
         self.current = self.current.clamp(self.min, self.max);
 
