@@ -5,23 +5,26 @@ use gst::prelude::*;
 extern crate gstreamer_pbutils as gst_pbutils;
 use gst_pbutils::prelude::*;
 
-use serde::{Deserialize, Serialize};
+use tokio::sync;
+use tokio::task;
+use tokio::time::{sleep, timeout, Duration};
+use eetf::{Term, Atom};
 
-const CREATE_USER: u8 = 0x11_u8;
-const DELETE_USER: u8 = 0x12_u8;
-const RAISE_ABR_QUALITY: u8 = 0x21_u8;
-const LOWER_ABR_QUALITY: u8 = 0x22_u8;
-const FRAME: u8 = 0x80_u8;
+type AVFrame = crate::turnx_gst::frame::AVFrame;
+type AVFrameOpt = Option<AVFrame>;
 
-#[derive(Deserialize, Serialize)]
-struct VideoFrame {
-    command: u8,
-    ident: i64,
-    frame: Vec<Vec<u8>>,
-    // TODO: Should we be checksumming?
-}
+const HALT: u8 = 0x01_u8;
+const AUDIO_ABR_QUALITY: u8 = 0x02_u8;
+const VIDEO_ABR_QUALITY: u8 = 0x03_u8;
+const AUDIO_FRAME_SEND: u8 = 0x04_u8;
+const VIDEO_FRAME_SEND: u8 = 0x05_u8;
+const AUDIO_FRAME_RECV: u8 = 0x06_u8;
+const VIDEO_FRAME_RECV: u8 = 0x07_u8;
+const PING: u8 = 0x80_u8;
+const PONG: u8 = 0x81_u8;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     use erlang_port::{PortReceive, PortSend};
 
     let mut port = unsafe {
@@ -34,9 +37,27 @@ fn main() {
         "Can't init Gstreamer, are its dependencies installed?"
     );
 
-    for inp in port.receiver.iter::<VideoFrame>() {
-        let input: VideoFrame = inp;
+    // ========================================================================
+    //  RUNLOOP
+    // ========================================================================
+    loop {
+        let join = timeout(
+            Duration::from_secs(5),
+            task::spawn_blocking(move || {
+                let mut item: Option<AVFrame> = None;
+                while item.is_none() {
+                    sleep(Duration::from_millis(1));
+                    item = port.receiver.receive::<AVFrame>()
+                };
+                item.unwrap()
+            })
+        ).await;
+        assert!(join.is_ok(), "AV task in runloop has crashed, aborting");
+        
+        let result = join.unwrap();
+        
+        // The runloop SHOULD HAVE crashed if it was an error... 
         port.sender
-            .reply::<Result<VideoFrame, VideoFrame>, VideoFrame, VideoFrame>(Ok(input))
+            .reply::<Result<AVFrameOpt, AVFrameOpt>, AVFrameOpt, AVFrameOpt>(Ok(result.ok()));
     }
 }

@@ -9,3 +9,4 @@
 
 ## Rust
 - (DONEish but we need to interface it with GStreamer fully) Implement Erlang Port for Elixir interface
+- Actually finish logic in the GStreamer core.

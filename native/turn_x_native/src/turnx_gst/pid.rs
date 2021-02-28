@@ -177,7 +177,8 @@ mod tests {
 
     #[test]
     fn check() {
-        let mut pid = PIDController::<f32>::new(500.0, 2500.0, 0.02, 0.15, 0.01, 4, 500.0, 0.0, 0.0);
+        let mut pid =
+            PIDController::<f32>::new(500.0, 2500.0, 0.02, 0.15, 0.01, 4, 500.0, 0.0, 0.0);
         for i in 0..16 {
             println!("i {} pid val returns {}", i, pid.adjust(1000.0));
         }
