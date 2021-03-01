@@ -74,7 +74,7 @@ impl PIDController<f32> {
         // adjust derivative here
         let derivative_hold = self.derivative_previous;
         self.derivative_previous = self.derivative;
-        self.derivative = (self.proportion - derivative_hold);
+        self.derivative = self.proportion - derivative_hold;
 
         // calc result
         let result: f32 = (self.proportion * self.weight_proportion)
@@ -144,7 +144,7 @@ impl PIDController<f64> {
         // adjust derivative here
         let derivative_hold = self.derivative_previous;
         self.derivative_previous = self.derivative;
-        self.derivative = (self.proportion - derivative_hold);
+        self.derivative = self.proportion - derivative_hold;
 
         // calc result
         let result: f64 = (self.proportion * self.weight_proportion)

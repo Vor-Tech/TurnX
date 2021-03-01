@@ -1,4 +1,5 @@
 defmodule TurnX.ServerPort do
+  require Logger
   use GenServer
   # ===========================================================================
   # Types
@@ -81,5 +82,11 @@ defmodule TurnX.ServerPort do
     })
 
     {:noreply, %{state | idents: Map.delete(state.idents, term.ident)}}
+  end
+  
+  @impl true
+  def handle_info({port, {:exit_status, exit_status}}, state) when port == state.port do
+    Logger.info([info: :port_exited, exit_status: exit_status])
+    {:stop, :normal, state}
   end
 end
